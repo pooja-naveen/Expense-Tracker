@@ -6,14 +6,51 @@ const form = document.getElementById("form");
 const text = document.getElementById("text");
 const amount = document.getElementById("amount");
 
-const dummyTransactions = [
-  { id: 1, text: "flower", amount: -20 },
-  { id: 2, text: "salary", amount: 300 },
-  { id: 3, text: "book", amount: -10 },
-  { id: 4, text: "camera", amount: 150 },
-];
+// const dummyTransactions = [
+//   { id: 1, text: "flower", amount: -20 },
+//   { id: 2, text: "salary", amount: 300 },
+//   { id: 3, text: "book", amount: -10 },
+//   { id: 4, text: "camera", amount: 150 },
+// ];
 
-let transactions = dummyTransactions;
+const localStorageTransactions = JSON.parse(
+  localStorage.getItem("transactions")
+);
+
+let transactions =
+  localStorage.getItem("transactions") !== null ? localStorageTransactions : [];
+//let transactions = dummyTransactions;
+
+//add transaction
+function addTransaction(e) {
+  e.preventDefault();
+
+  if (text.value.trim() === "" || amount.value.trim() === "") {
+    alert("please add a text and amount");
+  } else {
+    const transaction = {
+      id: generateID(),
+      text: text.value,
+      amount: +amount.value,
+    };
+    transactions.push(transaction);
+
+    addTransactionDOM(transaction);
+
+    updateValues();
+ 
+    updateLocalStorage();
+
+    text.value = "";
+    amount.value = "";
+    //console.log(transaction);
+  }
+}
+
+//generate random id
+function generateID() {
+  return Math.floor(Math.random() * 100000000);
+}
 
 //add transactions to DOM list
 function addTransactionDOM(transaction) {
@@ -27,7 +64,9 @@ function addTransactionDOM(transaction) {
 
   item.innerHTML = `${transaction.text} <span>${sign}${Math.abs(
     transaction.amount
-  )} </span> <button class="delete-btn">x</button>`;
+  )} </span> <button class="delete-btn" onclick="removeTransaction(${
+    transaction.id
+  })">x</button>`;
 
   list.appendChild(item);
 }
@@ -48,13 +87,27 @@ function updateValues() {
     -1
   ).toFixed(2);
 
-  
   balance.innerText = `$${total}`;
   money_plus.innerText = `$${income}`;
   money_minus.innerText = `$${expense}`;
   //console.log(expense);
   // console.log(amounts);
 }
+
+//remove Transaction by id
+function removeTransaction(id) {
+  transactions = transactions.filter((transaction) => transaction.id !== id);
+
+  updateLocalStorage();
+
+  init();
+}
+
+//update local stroage transactions
+function updateLocalStorage(){
+  localStorage.setItem('transactions', JSON.stringify(transactions));
+}
+
 
 //Init app
 function init() {
@@ -65,3 +118,5 @@ function init() {
 }
 
 init();
+
+form.addEventListener("submit", addTransaction);
